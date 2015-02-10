@@ -8,16 +8,16 @@ def response_ok(body, mimetype):
     """returns a basic HTTP response"""
     resp = []
     resp.append("HTTP/1.1 200 OK")
-    resp.append("Content-Type: text/plain")
+    resp.append("Content-Type: {}".format(mimetype))
     resp.append("")
-    resp.append("this is a pretty minimal response")
+    resp.append(body)
     return "\r\n".join(resp)
 
 
 def response_not_found():
-    """returns a 404 Resource Does Not Exist response"""
+    """returns a 404 Not Found response"""
     resp = []
-    resp.append("HTTP/1.1 404 Resource Does Not Exist")
+    resp.append("HTTP/1.1 404 Not Found")
     resp.append("")
     return "\r\n".join(resp)
 
@@ -43,13 +43,15 @@ def parse_request(request):
 def resolve_uri(uri):
     """return the content and type of a uri """
     HOME = 'webroot'
+    
     if os.path.isdir(HOME + uri):
         return "\r\n".join(os.listdir(HOME + uri)), 'text/plain'
     elif os.path.isfile(HOME + uri):
         f = open(HOME + uri, 'r')
         return f.read(), mimetypes.guess_type(HOME + uri)[0]
+
     else:
-        raise NameError("uri {} not found".format(HOME + uri))
+        raise ValueError()
 
 
 def server():
@@ -87,7 +89,7 @@ def server():
                     try:
                         content, type = resolve_uri(uri) # change this line
                         response = response_ok(content, type)
-                    except NameError:
+                    except ValueError:
                         response = response_not_found()
 
                 print >>sys.stderr, 'sending response'
